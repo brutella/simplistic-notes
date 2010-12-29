@@ -20,7 +20,6 @@ module Simplenote
 
     helpers do
       def check_authorization
-        puts CGI.unescape(params['email'])
         halt 401 unless(params['auth'] == options.token && CGI.unescape(params['email']) == options.email)
       end
 
@@ -42,11 +41,11 @@ module Simplenote
       end
 
       #All notes
-      def get_notes
+      def get_notes    
         paths = note_paths()
         notes = []
         paths.each do |path|
-          notes << JSON.parse(File.read(path)) unless File.exists?(path)
+          notes << JSON.parse(File.read(path))
         end
         
         notes
@@ -122,7 +121,7 @@ module Simplenote
     
     # Get index
     get '/api2/index' do
-      
+    
       content_type :json
       check_authorization
       
@@ -136,9 +135,45 @@ module Simplenote
       
       index
     end 
-
+    
+    # Get or update note
+    get '/api2/data/*' do
+      content_type :json
+      check_authorization
+      
+      #get the note key
+      key = params[:splat].first
+      
+      note = get_note(key)
+      halt 404 if note.nil?
+      
+      note.to_json
+    end
+    
+    post '/api2/data/*' do
+      content_type :json
+      check_authorization
+      
+      #get the note key
+      key = params[:splat].first
+      
+      note = get_note(key)
+      halt 404 if note.nil?
+      
+      # body contains the ntoe
+      body = JSON.parse(request.body.read)
+              
+      note.merge!(body)
+      note['version'] += 1
+      note['syncnumber'] += 1
+        
+      set_note(key, note.to_json)
+      
+      note.to_json
+    end
+=begin
     # Get note
-    get '/api2/data/:key/:auth/:email' do |key|
+    get '/api2/data/:key' do |key|
       content_type :json
       check_authorization
 
@@ -149,7 +184,7 @@ module Simplenote
     end
 
     # Update note
-    post '/api2/data/:key/:auth/:email' do |key|
+    post '/api2/data/:key' do |key|
       
       content_type :json
       check_authorization
@@ -167,6 +202,7 @@ module Simplenote
       
       note
     end
+=end
 
   end
 end
