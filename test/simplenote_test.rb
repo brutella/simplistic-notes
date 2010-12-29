@@ -1,10 +1,11 @@
+require 'rubygems'
 require 'test/unit'
 require 'rack/test'
-require 'simplenote'
+require '../simplenote'
 
 class SimplenoteTest < Test::Unit::TestCase
   include Rack::Test::Methods
-
+  
   def app
     Simplenote::Server
   end
@@ -12,7 +13,7 @@ class SimplenoteTest < Test::Unit::TestCase
   def auth(path)
     uri = URI.parse path
     uri.query = Rack::Utils.build_query(
-      :email => 'test@example.com',
+      :email => 'justnotes@selfcoded.com',
       :auth => '4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5'
     )
     uri.to_s
@@ -49,7 +50,7 @@ class SimplenoteTest < Test::Unit::TestCase
   end
 
   def test_login_success
-    body = Base64.encode64 "email=test@example.com&password=Simplenote"
+    body = Base64.encode64 "email=justnotes@selfcoded.com&password=mn8546"
     post '/api/login', {}, {:input => body}
     assert last_response.ok?, "response is ok"
     assert_equal '4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5', last_response.body
@@ -142,6 +143,40 @@ class SimplenoteTest < Test::Unit::TestCase
     assert last_response.ok?, "response is ok"
     assert_equal '1289987770.148090', updated_note['modifydate']
     assert_equal note['version'] + 1, updated_note['version']
+  end
+  
+  def test_get_index
+    get auth('/api2/index'), {}, {}
+    response = JSON.parse(last_response.body)
+    count = response['count']
+    notes = response['data']
+
+    assert_equal(notes.length, count)
+  end
+  
+  def test_delete_note
+    get auth('/api2/index'), {}, {}
+    response = JSON.parse(last_response.body)
+    
+    notes = response['count']
+    notes = response['data']
+    note = notes.first
+    
+    # Create a note if no note available
+    if !note 
+      post auth('/api2/data'), {}, {:input => { 'content' => 'Test Note' }.to_json}
+      note = JSON.parse(last_response.body)
+    end
+    
+    deleted = note['deleted']
+    key = note['key']
+    
+    note['deleted'] = !deleted
+    
+    post auth("/api2/data/#{key}"), {}, {:input => note.to_json}
+    updated_note = JSON.parse(last_response.body)
+    
+    assert_equal !deleted, updated_note['deleted']
   end
 
 end

@@ -1,3 +1,5 @@
+require 'rubygems'
+require 'ruby-debug'
 require 'sinatra/base'
 require 'base64'
 require 'json'
@@ -8,26 +10,52 @@ module Simplenote
     set :app_file, __FILE__
 
     configure do
-      set :email, "test@example.com"
-      set :password, "Simplenote"
+      set :email, "justnotes@selfcoded.com"
+      set :password, "mn8546"
       set :token, "4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5"
-      set :datastore, File.join(File.dirname(__FILE__), "notes")
-      Dir.mkdir datastore unless Dir.exists? datastore
+      set :datastore, File.join(File.dirname(File.expand_path(__FILE__)), "notes")
+      Dir.mkdir(datastore) unless File.directory?(datastore)
+      
     end
 
     helpers do
       def check_authorization
-        halt 401 unless(params['auth'] == options.token && params['email'] == options.email)
+        puts CGI.unescape(params['email'])
+        halt 401 unless(params['auth'] == options.token && CGI.unescape(params['email']) == options.email)
       end
 
       def note_path(key)
         File.join(options.datastore, key + ".json")
       end
+      
+      #All note paths
+      def note_paths
+        # strip out files like '.' or '.DS_Store'
+        files = Dir.entries(options.datastore).compact.reject{ |s| s.match("^[.]") }
+        
+        full_path = Array.new
+        files.each do |file|
+          full_path << File.join(options.datastore, file)
+        end
+        
+        full_path
+      end
 
+      #All notes
+      def get_notes
+        paths = note_paths()
+        notes = []
+        paths.each do |path|
+          notes << JSON.parse(File.read(path)) unless File.exists?(path)
+        end
+        
+        notes
+      end
+      
       def get_note(key)
         path = note_path key
         if File.exists? path
-          JSON.parse(File.read path)
+          JSON.parse(File.read(path))
         else
           nil
         end
@@ -36,13 +64,13 @@ module Simplenote
       def set_note(key, note)
         path = note_path key
         File.open(path, 'w') do |f|
-          f.write note
+          f.write(note)
         end
       end
 
       def all_notes
         Dir[File.join(options.datastore, '*.json')].map do |path|
-          JSON.parse(File.read path)
+          JSON.parse(File.read(path))
         end
       end
 
@@ -55,8 +83,10 @@ module Simplenote
       end
     end
 
+
+    # Login
     post '/api/login' do
-      decoded_body = Base64.decode64 request.body.read
+      decoded_body = Base64.decode64(request.body.read)
       parsed_body = Rack::Utils.parse_query(decoded_body)
       if parsed_body['email'] == options.email && parsed_body['password'] == options.password
         return options.token
@@ -66,7 +96,7 @@ module Simplenote
     end
 
     # Create note
-    post '/api2/data' do
+    post '/api2/data/:auth/:email' do
       content_type :json
       check_authorization
 
@@ -82,30 +112,49 @@ module Simplenote
         'tags' => [],
         'systemtags' => []
       }
-      note = filter_note(JSON.parse request.body.read)
+      note = filter_note(JSON.parse(request.body.read))
       note = defaults.merge(note).to_json
 
-      set_note key, note
+      set_note(key, note)
+      
       note
     end
+    
+    # Get index
+    get '/api2/index' do
+      
+      content_type :json
+      check_authorization
+      
+      length = params['length']
+      notes = get_notes()
+      
+      index = {
+       'count' => notes.length,
+       'data'  => notes 
+      }.to_json
+      
+      index
+    end 
 
     # Get note
-    get '/api2/data/:key' do |key|
+    get '/api2/data/:key/:auth/:email' do |key|
       content_type :json
       check_authorization
 
-      note = get_note key
+      note = get_note(key)
       halt 404 if note.nil?
 
       note.to_json
     end
 
     # Update note
-    post '/api2/data/:key' do |key|
+    post '/api2/data/:key/:auth/:email' do |key|
+      
       content_type :json
       check_authorization
 
-      note = get_note key
+      note = get_note(key)
       halt 404 if note.nil?
 
       note.merge! filter_note(JSON.parse request.body.read)
@@ -114,7 +163,8 @@ module Simplenote
 
       # TODO: Exclude content if it hasn't changed
       note = note.to_json
-      set_note note['key'], note
+      set_note(note['key'], note) unless note['key']
+      
       note
     end
 
