@@ -163,6 +163,23 @@ class SimplenoteTest < Test::Unit::TestCase
     assert_equal(notes.length, count)
   end
   
+  def test_get_index_fixed_count
+    count = 5
+    
+    uri = URI.parse '/api2/index'    
+    uri.query = Rack::Utils.build_query(
+      :email  => CGI.escape(@email),
+      :auth   => @token,
+      :length => count
+    )
+    
+    get uri.to_s
+    response = JSON.parse(last_response.body)
+    index_count = response['count']
+    
+    assert_equal count, index_count
+  end
+  
   def test_delete_note
     get auth('/api2/index')
     response = JSON.parse(last_response.body)

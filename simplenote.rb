@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'ruby-debug'
+require 'test/unit'
 require 'sinatra/base'
 require 'base64'
 require 'json'
@@ -8,6 +9,8 @@ require 'yaml'
 
 module Simplenote
   class Server < Sinatra::Base
+    include Test::Unit
+      
     set :app_file, __FILE__
     
     DEFAULT_INDEX_NOTES_COUNT = 100
@@ -31,9 +34,13 @@ module Simplenote
       end
       
       #All note paths
-      def note_paths
+      def note_paths(count)
         # strip out files like '.' or '.DS_Store'
         files = Dir.entries(options.datastore).compact.reject{ |s| s.match("^[.]") }
+
+        if files.length > count
+          files = files.first(count)
+        end
         
         full_path = Array.new
         files.each do |file|
@@ -44,13 +51,14 @@ module Simplenote
       end
 
       #All notes
-      def get_notes    
-        paths = note_paths()
+      def get_notes(count)  
+        paths = note_paths(count)
         notes = []
+        
         paths.each do |path|
           notes << JSON.parse(File.read(path))
         end
-        
+       
         notes
       end
       
@@ -128,8 +136,9 @@ module Simplenote
       content_type :json
       check_authorization
       
-      length = params['length']
-      notes = get_notes()
+      length = params['length'].to_i
+      length = DEFAULT_INDEX_NOTES_COUNT if length <= 0
+      notes = get_notes(length)
       
       index = {
        'count' => notes.length,
@@ -169,6 +178,5 @@ module Simplenote
       
       note.to_json
     end
-
   end
 end
