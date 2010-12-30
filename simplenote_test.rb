@@ -2,20 +2,28 @@ require 'cgi'
 require 'rubygems'
 require 'test/unit'
 require 'rack/test'
-require '../simplenote'
+require 'yaml'
+require 'simplenote'
 
 class SimplenoteTest < Test::Unit::TestCase
   include Rack::Test::Methods
+  
+  def setup
+    config = YAML::load_file('config.yaml')
+    @email    = config['email']
+    @password = config['password']
+    @token    = config['token']
+  end
   
   def app
     Simplenote::Server
   end
 
   def auth(path)
-    uri = URI.parse path
+    uri = URI.parse path    
     uri.query = Rack::Utils.build_query(
-      :email => CGI.escape('justnotes@selfcoded.com'),
-      :auth => '4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5'
+      :email  => CGI.escape(@email),
+      :auth   => @token
     )
     uri.to_s
   end
@@ -51,7 +59,7 @@ class SimplenoteTest < Test::Unit::TestCase
   end
 
   def test_login_success
-    body = Base64.encode64 "email=justnotes@selfcoded.com&password=mn8546"
+    body = Base64.encode64 "email=" + @email + "&password=" + @password
     post '/api/login', {}, {:input => body}
     assert last_response.ok?, "response is ok"
     assert_equal '4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5', last_response.body

@@ -14,10 +14,10 @@ module Simplenote
     DEFAULT_INDEX_NOTES_COUNT = 100
 
     configure do
-      user = YAML::load_file('user.yaml')
-      set :email, user['email']
-      set :password, user['password']
-      set :token, "4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5"
+      config = YAML::load_file('config.yaml')
+      set :email,     config['email']
+      set :password,  config['password']
+      set :token,     config['token']
       set :datastore, File.join(File.dirname(File.expand_path(__FILE__)), "notes")
       Dir.mkdir(datastore) unless File.directory?(datastore)
     end
