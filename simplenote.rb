@@ -4,6 +4,7 @@ require 'sinatra/base'
 require 'base64'
 require 'json'
 require 'uuid'
+require 'yaml'
 
 #TODO: fixed tests
 module Simplenote
@@ -13,12 +14,12 @@ module Simplenote
     DEFAULT_INDEX_NOTES_COUNT = 100
 
     configure do
-      set :email, "justnotes@selfcoded.com"
-      set :password, "mn8546"
+      user = YAML::load_file('user.yaml')
+      set :email, user['email']
+      set :password, user['password']
       set :token, "4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5"
       set :datastore, File.join(File.dirname(File.expand_path(__FILE__)), "notes")
       Dir.mkdir(datastore) unless File.directory?(datastore)
-      
     end
 
     helpers do
