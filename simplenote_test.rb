@@ -5,6 +5,7 @@ require 'rack/test'
 require 'yaml'
 require 'simplenote'
 
+# TODO Fix content url encoding
 class SimplenoteTest < Test::Unit::TestCase
   include Rack::Test::Methods
   
@@ -83,7 +84,7 @@ class SimplenoteTest < Test::Unit::TestCase
 
   def test_create_note
     note = {
-      'content' => 'Test Note',
+      'content' => CGI.escape('Test Note'),
       'createdate' => '1283689511.529748',
       'modifydate' => '1289942464.55253'
     }
@@ -91,7 +92,7 @@ class SimplenoteTest < Test::Unit::TestCase
     assert last_response.ok?, "response is ok"
 
     new_note = JSON.parse(last_response.body)
-    assert_equal 'Test Note', new_note['content']
+    assert_equal 'Test Note', CGI.unescape(new_note['content'])
     assert_equal '1283689511.529748', new_note['createdate']
     assert_equal '1289942464.55253', new_note['modifydate']
     assert_equal 1, new_note['version'], "version is initialised"

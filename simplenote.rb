@@ -169,7 +169,7 @@ module Simplenote
       
       # body contains the note
       body = JSON.parse(request.body.read)
-              
+       
       note.merge!(body)
       note['version'] += 1
       note['syncnumber'] += 1
