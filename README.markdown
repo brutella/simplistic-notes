@@ -15,6 +15,7 @@ You will need a couple of RubyGems to run SimplisticNotes:
 
 * sinatra
 * json
+* yaml
 
 To run the tests you will also need:
 
