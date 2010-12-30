@@ -6,7 +6,6 @@ require 'json'
 require 'uuid'
 require 'yaml'
 
-#TODO: fixed tests
 module Simplenote
   class Server < Sinatra::Base
     set :app_file, __FILE__
@@ -123,8 +122,7 @@ module Simplenote
       note
     end
     
-    # Get index
-    # TODO: support paging (DEFAULT_INDEX_NOTES_COUNT)
+    # Get index TODO: support paging (DEFAULT_INDEX_NOTES_COUNT)
     get '/api2/index' do
     
       content_type :json
@@ -141,7 +139,7 @@ module Simplenote
       index
     end 
     
-    # Get or update note
+    # Get note
     get '/api2/data/:key' do |key|
       content_type :json
       check_authorization
@@ -152,17 +150,15 @@ module Simplenote
       note.to_json
     end
     
+    # Update note
     post '/api2/data/:key' do |key|
       content_type :json
       check_authorization
       
-      # Get the note key, this was the old way when receiving post '/api2/data/*'
-      # key = params[:splat].first
-      
       note = get_note(key)
       halt 404 if note.nil?
       
-      # body contains the ntoe
+      # body contains the note
       body = JSON.parse(request.body.read)
               
       note.merge!(body)
