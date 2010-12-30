@@ -163,21 +163,31 @@ class SimplenoteTest < Test::Unit::TestCase
     assert_equal(notes.length, count)
   end
   
-  def test_get_index_fixed_count
-    count = 5
+  def test_get_index_paging
+    page_size = 10
+    mark = 0
     
-    uri = URI.parse '/api2/index'    
-    uri.query = Rack::Utils.build_query(
-      :email  => CGI.escape(@email),
-      :auth   => @token,
-      :length => count
-    )
-    
-    get uri.to_s
-    response = JSON.parse(last_response.body)
-    index_count = response['count']
-    
-    assert_equal count, index_count
+    count = 0
+    while mark != -1
+      uri = URI.parse '/api2/index'    
+      uri.query = Rack::Utils.build_query(
+        :email  => CGI.escape(@email),
+        :auth   => @token,
+        :length => page_size,
+        :mark   => mark
+      )
+      
+      puts mark.to_s
+      
+      get uri.to_s
+      response = JSON.parse(last_response.body)
+      count += response['count']
+      if response['mark']
+        mark = response['mark'].to_i        
+      else
+        mark = -1
+      end
+    end
   end
   
   def test_delete_note

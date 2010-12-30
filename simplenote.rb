@@ -34,13 +34,9 @@ module Simplenote
       end
       
       #All note paths
-      def note_paths(count)
+      def note_paths
         # strip out files like '.' or '.DS_Store'
         files = Dir.entries(options.datastore).compact.reject{ |s| s.match("^[.]") }
-
-        if files.length > count
-          files = files.first(count)
-        end
         
         full_path = Array.new
         files.each do |file|
@@ -51,8 +47,8 @@ module Simplenote
       end
 
       #All notes
-      def get_notes(count)  
-        paths = note_paths(count)
+      def get_notes  
+        paths = note_paths
         notes = []
         
         paths.each do |path|
@@ -130,22 +126,25 @@ module Simplenote
       note
     end
     
-    # Get index TODO: support paging (DEFAULT_INDEX_NOTES_COUNT)
+    # Get index
     get '/api2/index' do
-    
       content_type :json
       check_authorization
       
       length = params['length'].to_i
       length = DEFAULT_INDEX_NOTES_COUNT if length <= 0
-      notes = get_notes(length)
+      mark = params['mark'].to_i
       
+      notes = get_notes()
+      
+      paged_notes = notes.slice(mark, length)
       index = {
-       'count' => notes.length,
-       'data'  => notes
-      }.to_json
+       'count' => paged_notes.length,
+       'data'  => paged_notes
+      }
+      index['mark'] = mark+length if notes.length > mark + paged_notes.length
       
-      index
+      index.to_json
     end 
     
     # Get note
