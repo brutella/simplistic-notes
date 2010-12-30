@@ -127,6 +127,7 @@ module Simplenote
     end
     
     # Get index
+    # TODO Change mark parameter to the key of the last returned note
     get '/api2/index' do
       content_type :json
       check_authorization

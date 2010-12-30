@@ -40,7 +40,8 @@ Status
 ------
 
 SimplisticNotes is not yet complete in its implementation of the Simplenote
-API. More complete support will come as my iOS client develops.
+API. The missing features are
+* Support DELETE request
 
 Running the Tests
 -----------------
