@@ -33,10 +33,7 @@ To start the SimplisticNotes server, run the following:
     rackup config.ru
 
 The server will now be running on `localhost:9292` and should respond as per the
-Simplenote API documentation. There is only one user account. It's details are:
-
-    email    : test@example.com
-    password : Simplenote
+Simplenote API documentation. There is only one user account which is defined in `config.yaml` file.
 
 Status
 ------
