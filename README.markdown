@@ -33,7 +33,7 @@ To start the SimplisticNotes server, run the following:
     rackup config.ru
 
 The server will now be running on `localhost:9292` and should respond as per the
-Simplenote API documentation. There is only one user account which is defined in `config.yaml` file.
+Simplenote API documentation. There is only one user account which is defined in the `config.yaml` file.
 
 Status
 ------
