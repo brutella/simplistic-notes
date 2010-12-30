@@ -1,3 +1,4 @@
+require 'cgi'
 require 'rubygems'
 require 'test/unit'
 require 'rack/test'
@@ -13,7 +14,7 @@ class SimplenoteTest < Test::Unit::TestCase
   def auth(path)
     uri = URI.parse path
     uri.query = Rack::Utils.build_query(
-      :email => 'justnotes@selfcoded.com',
+      :email => CGI.escape('justnotes@selfcoded.com'),
       :auth => '4AD2AB0C69C862309C53B1668271950CA026B11A4501E9E6F59D3617026865C5'
     )
     uri.to_s
@@ -110,7 +111,7 @@ class SimplenoteTest < Test::Unit::TestCase
     note = JSON.parse(last_response.body)
 
     # Retrieve the note
-    get auth("/api2/data/#{note['key']}")
+    get auth "/api2/data/#{note['key']}"
     fetched_note = JSON.parse(last_response.body)
     assert last_response.ok?, "response is ok"
     assert_equal note, fetched_note
@@ -146,7 +147,7 @@ class SimplenoteTest < Test::Unit::TestCase
   end
   
   def test_get_index
-    get auth('/api2/index'), {}, {}
+    get auth('/api2/index')
     response = JSON.parse(last_response.body)
     count = response['count']
     notes = response['data']
@@ -155,18 +156,15 @@ class SimplenoteTest < Test::Unit::TestCase
   end
   
   def test_delete_note
-    get auth('/api2/index'), {}, {}
+    get auth('/api2/index')
     response = JSON.parse(last_response.body)
     
     notes = response['count']
     notes = response['data']
     note = notes.first
     
-    # Create a note if no note available
-    if !note 
-      post auth('/api2/data'), {}, {:input => { 'content' => 'Test Note' }.to_json}
-      note = JSON.parse(last_response.body)
-    end
+    # There must be min. one note on the server to test deletion
+    assert_not_nil note
     
     deleted = note['deleted']
     key = note['key']

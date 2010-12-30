@@ -5,9 +5,12 @@ require 'base64'
 require 'json'
 require 'uuid'
 
+#TODO: fixed tests
 module Simplenote
   class Server < Sinatra::Base
     set :app_file, __FILE__
+    
+    DEFAULT_INDEX_NOTES_COUNT = 100
 
     configure do
       set :email, "justnotes@selfcoded.com"
@@ -95,7 +98,7 @@ module Simplenote
     end
 
     # Create note
-    post '/api2/data/:auth/:email' do
+    post '/api2/data' do
       content_type :json
       check_authorization
 
@@ -120,6 +123,7 @@ module Simplenote
     end
     
     # Get index
+    # TODO: support paging (DEFAULT_INDEX_NOTES_COUNT)
     get '/api2/index' do
     
       content_type :json
@@ -130,19 +134,16 @@ module Simplenote
       
       index = {
        'count' => notes.length,
-       'data'  => notes 
+       'data'  => notes
       }.to_json
       
       index
     end 
     
     # Get or update note
-    get '/api2/data/*' do
+    get '/api2/data/:key' do |key|
       content_type :json
       check_authorization
-      
-      #get the note key
-      key = params[:splat].first
       
       note = get_note(key)
       halt 404 if note.nil?
@@ -150,12 +151,12 @@ module Simplenote
       note.to_json
     end
     
-    post '/api2/data/*' do
+    post '/api2/data/:key' do |key|
       content_type :json
       check_authorization
       
-      #get the note key
-      key = params[:splat].first
+      # Get the note key, this was the old way when receiving post '/api2/data/*'
+      # key = params[:splat].first
       
       note = get_note(key)
       halt 404 if note.nil?
@@ -171,38 +172,6 @@ module Simplenote
       
       note.to_json
     end
-=begin
-    # Get note
-    get '/api2/data/:key' do |key|
-      content_type :json
-      check_authorization
-
-      note = get_note(key)
-      halt 404 if note.nil?
-
-      note.to_json
-    end
-
-    # Update note
-    post '/api2/data/:key' do |key|
-      
-      content_type :json
-      check_authorization
-
-      note = get_note(key)
-      halt 404 if note.nil?
-
-      note.merge! filter_note(JSON.parse request.body.read)
-      note['version'] += 1
-      note['syncnumber'] += 1
-
-      # TODO: Exclude content if it hasn't changed
-      note = note.to_json
-      set_note(note['key'], note) unless note['key']
-      
-      note
-    end
-=end
 
   end
 end
