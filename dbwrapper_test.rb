@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'test/unit'
 require 'dbwrapper'
+require 'note'
 
 class DBWrapperTest < Test::Unit::TestCase
   
@@ -31,13 +32,14 @@ class DBWrapperTest < Test::Unit::TestCase
   end
   
   def test_create_note
-    note = {
+    note = Note.new(
       'content' => 'A new note',
       'modifydate' => Time.now.to_f.to_s,
-      'createdate' => Time.now.to_f.to_s     
-    }
+      'createdate' => Time.now.to_f.to_s
+      )
     
     key = @database.create_note(note)
+    assert_not_nil key
   end
     
 end

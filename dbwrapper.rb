@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'couchrest'
 require 'uuid'
+require 'note'
 
 module DBWrapper
   class SimplenoteDB
@@ -14,8 +15,10 @@ module DBWrapper
     def get_notes
       documents = @database.documents
       documents.each do |document|
-        puts document
+        puts document.inspect
       end
+      
+      documents
     end
 
     def get_note(key)
@@ -39,7 +42,7 @@ module DBWrapper
       note['key'] = key
       
       id = @database.save_doc(note)
-            
+   
       key
     end
   end
