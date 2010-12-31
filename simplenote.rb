@@ -9,7 +9,6 @@ require 'yaml'
 
 module Simplenote
   class Server < Sinatra::Base
-    include Test::Unit
       
     set :app_file, __FILE__
     
