@@ -22,12 +22,12 @@ class DBWrapperTest < Test::Unit::TestCase
   end
 
   def test_a_note_creation
-    note = Note.new(
-      :content => 'A new note',
+    note = {
+      :content => "A new note",
       :modifydate => Time.now.to_f.to_s,
       :createdate => Time.now.to_f.to_s
-      )
-    
+      }
+      
     key = @database.create_note(note)
     assert_not_nil key
   
@@ -59,9 +59,7 @@ class DBWrapperTest < Test::Unit::TestCase
   def test_update_note
     notes = @database.get_not_deleted_notes
     assert_not_nil notes
-    
-    debugger 
-    
+      
     note = notes.first
     assert_not_nil note
     
@@ -70,8 +68,7 @@ class DBWrapperTest < Test::Unit::TestCase
     
     tags = ["important", "todo"]
     note.tags = tags
-    
-    @database.update_note note
+    note.save
     
     updated_note = @database.get_note_with_key note.key
 

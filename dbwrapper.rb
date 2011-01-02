@@ -11,7 +11,7 @@ module DBWrapper
     def initialize(path)
       raise ArgumentError, "path to database must not be nil" if path.length == 0
 
-      @database = CouchRest.new.database!(path)
+      # @database = CouchRest.new.database!(path)
     end
     
     def get_notes
@@ -58,13 +58,14 @@ module DBWrapper
       return false
     end
 
-    def create_note(note)
-      key = UUID.generate
-      note.key = key
+    def create_note(note_hash)
+      debugger
+      note_hash['key'] = UUID.generate
       
-      id = @database.save_doc(note)
-   
-      key
+      note = Note.new note_hash
+      note.save   
+      
+      note.key
     end
   end
 end

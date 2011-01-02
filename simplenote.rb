@@ -8,10 +8,14 @@ require 'base64'
 require 'json'
 require 'uuid'
 require 'yaml'
+require 'dbwrapper'
+require 'note'
 
 module Simplenote
   class Server < Sinatra::Base
-      
+    
+    database = DBWrapper::SimplenoteDatabase.new('simplenote_database_test')
+    
     set :app_file, __FILE__
     
     DEFAULT_INDEX_NOTES_COUNT = 100
@@ -22,7 +26,7 @@ module Simplenote
       set :password,  config['password']
       set :token,     config['token']
       set :datastore, File.join(File.dirname(File.expand_path(__FILE__)), "notes")
-      Dir.mkdir(datastore) unless File.directory?(datastore)
+      Dir.mkdir(datastore) unless File.directory?(datastore) 
     end
 
     helpers do
@@ -106,7 +110,7 @@ module Simplenote
     post '/api2/data' do
       content_type :json
       check_authorization
-
+=begin
       key = UUID.generate
       defaults = {
         'key' => key,
@@ -120,11 +124,13 @@ module Simplenote
         'systemtags' => []
       }
       note = filter_note(JSON.parse(request.body.read))
-      note = defaults.merge(note).to_json
-
-      set_note(key, note)
-      
-      note
+      #note = defaults.merge(note).to_json
+=end
+      body = JSON.parse(request.body.read)
+            
+      key = database.create_note body
+      result = database.get_note_with_key key
+      result.to_json
     end
     
     # Get index
@@ -137,7 +143,7 @@ module Simplenote
       length = DEFAULT_INDEX_NOTES_COUNT if length <= 0
       mark = params['mark'].to_i
       
-      notes = get_notes()
+      notes = database.get_notes
       
       paged_notes = notes.slice(mark, length)
       index = {
@@ -154,7 +160,8 @@ module Simplenote
       content_type :json
       check_authorization
       
-      note = get_note(key)
+      note = database.get_note_with_key key
+      #note = get_note(key)
       halt 404 if note.nil?
       
       note.to_json
@@ -162,20 +169,21 @@ module Simplenote
     
     # Update note
     post '/api2/data/:key' do |key|
+      debugger
       content_type :json
       check_authorization
       
-      note = get_note(key)
+      
+      note = database.get_note_with_key key      
       halt 404 if note.nil?
       
       # body contains the note
       body = JSON.parse(request.body.read)
-       
       note.merge!(body)
-      note['version'] += 1
-      note['syncnumber'] += 1
-        
-      set_note(key, note.to_json)
+      note.version += 1
+      note.syncnumber += 1
+      
+      note.save
       
       note.to_json
     end
