@@ -1,5 +1,7 @@
-require 'cgi'
 require 'rubygems'
+require "bundler/setup"
+
+require 'cgi'
 require 'test/unit'
 require 'rack/test'
 require 'yaml'

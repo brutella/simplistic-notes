@@ -1,4 +1,6 @@
 require 'rubygems'
+require "bundler/setup"
+require 'cgi'
 require 'ruby-debug'
 require 'test/unit'
 require 'sinatra/base'

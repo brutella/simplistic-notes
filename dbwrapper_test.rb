@@ -1,4 +1,5 @@
 require 'rubygems'
+require "bundler/setup"
 require 'test/unit'
 require 'dbwrapper'
 require 'note'
@@ -22,7 +23,7 @@ class DBWrapperTest < Test::Unit::TestCase
 
 
   def test_get_notes
-    notes = @database.get_notes
+    notes = Note.all
     assert_not_nil notes
   end
   
@@ -33,9 +34,9 @@ class DBWrapperTest < Test::Unit::TestCase
   
   def test_create_note
     note = Note.new(
-      'content' => 'A new note',
-      'modifydate' => Time.now.to_f.to_s,
-      'createdate' => Time.now.to_f.to_s
+      :content => 'A new note',
+      :modifydate => Time.now.to_f.to_s,
+      :createdate => Time.now.to_f.to_s
       )
     
     key = @database.create_note(note)
