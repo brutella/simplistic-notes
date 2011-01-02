@@ -17,9 +17,14 @@ module DBWrapper
     def get_notes
       Note.all
     end
+    
+    def get_not_deleted_notes
+      get_notes().reject{ |note| note.deleted }
+    end
 
-    def get_note(key)
-      Note.by_key key
+    def get_note_with_key(key)
+      notes = Note.by_key :key => key
+      notes.first
     end
 
     def get_index
@@ -27,11 +32,12 @@ module DBWrapper
     end
 
     def update_note(note)
-      persistent_note = Note.by_key note.key
+      persistent_note = get_note_with_key note.key
+      
       persistent_note.modifydate  = note.modifydate
       persistent_note.content     = note.content
       persistent_note.version    += 1
-      persistent_note.syncnumber +=1
+      persistent_note.syncnumber += 1
       persistent_note.tags        = note.tags
       persistent_note.systemtags  = note.systemtags
       
@@ -40,8 +46,16 @@ module DBWrapper
       persistent_note
     end
 
-    def delete_note(note)
-
+    def delete_note_with_key(key)
+      notes = Note.by_key :key => key
+      note = notes.first
+      if note
+        note.deleted = true
+        note.save
+        return true
+      end
+      
+      return false
     end
 
     def create_note(note)

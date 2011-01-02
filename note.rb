@@ -9,10 +9,10 @@ class Note < CouchRest::Model::Base
   property :content,    String
   property :createdate, String
   property :modifydate, String
-  property :version,    Integer
-  property :syncnumber, Integer
-  property :minversion, Integer
-  property :deleted,    Integer
+  property :version,    Integer, :default => 0
+  property :syncnumber, Integer, :default => 0
+  property :minversion, Integer, :default => 0
+  property :deleted,    Integer, :default => false
   property :tags,       [String]
   property :systemtags, [String]
   
