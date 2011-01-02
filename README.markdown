@@ -43,6 +43,7 @@ SimplisticNotes is not yet complete in its implementation of the Simplenote
 API. The missing features are
 
 * Support DELETE request
+* Integrate CouchDB database
 
 Running the Tests
 -----------------
