@@ -10,8 +10,6 @@ module DBWrapper
     
     def initialize(path)
       raise ArgumentError, "path to database must not be nil" if path.length == 0
-
-      # @database = CouchRest.new.database!(path)
     end
     
     def get_notes
@@ -19,7 +17,7 @@ module DBWrapper
     end
     
     def get_not_deleted_notes
-      get_notes().reject{ |note| note.deleted }
+      get_notes().reject{ |note| note.deleted == 1 }
     end
 
     def get_note_with_key(key)
@@ -31,26 +29,11 @@ module DBWrapper
       get_notes
     end
 
-    def update_note(note)
-      persistent_note = get_note_with_key note.key
-      
-      persistent_note.modifydate  = note.modifydate
-      persistent_note.content     = note.content
-      persistent_note.version    += 1
-      persistent_note.syncnumber += 1
-      persistent_note.tags        = note.tags
-      persistent_note.systemtags  = note.systemtags
-      
-      persistent_note.save
-      
-      persistent_note
-    end
-
     def delete_note_with_key(key)
       notes = Note.by_key :key => key
       note = notes.first
       if note
-        note.deleted = true
+        note.deleted = 1
         note.save
         return true
       end
@@ -59,7 +42,6 @@ module DBWrapper
     end
 
     def create_note(note_hash)
-      debugger
       note_hash['key'] = UUID.generate
       
       note = Note.new note_hash

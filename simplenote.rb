@@ -11,6 +11,7 @@ require 'yaml'
 require 'dbwrapper'
 require 'note'
 
+# TODO Exclude couchdb json keys from http response
 module Simplenote
   class Server < Sinatra::Base
     
@@ -110,24 +111,10 @@ module Simplenote
     post '/api2/data' do
       content_type :json
       check_authorization
-=begin
-      key = UUID.generate
-      defaults = {
-        'key' => key,
-        'version' => 1,
-        'syncnumber' => 1,
-        'minversion' => 1,
-        'deleted' => 0,
-        'modifydate' => Time.now.to_f.to_s,
-        'createdate' => Time.now.to_f.to_s,
-        'tags' => [],
-        'systemtags' => []
-      }
-      note = filter_note(JSON.parse(request.body.read))
-      #note = defaults.merge(note).to_json
-=end
+
       body = JSON.parse(request.body.read)
-            
+      body['content'] = CGI.unescape(body['content'])
+      
       key = database.create_note body
       result = database.get_note_with_key key
       result.to_json
@@ -161,7 +148,6 @@ module Simplenote
       check_authorization
       
       note = database.get_note_with_key key
-      #note = get_note(key)
       halt 404 if note.nil?
       
       note.to_json
@@ -169,7 +155,6 @@ module Simplenote
     
     # Update note
     post '/api2/data/:key' do |key|
-      debugger
       content_type :json
       check_authorization
       
@@ -179,6 +164,7 @@ module Simplenote
       
       # body contains the note
       body = JSON.parse(request.body.read)
+      body['content'] = CGI.unescape(body['content'])
       note.merge!(body)
       note.version += 1
       note.syncnumber += 1

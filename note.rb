@@ -7,8 +7,8 @@ class Note < CouchRest::Model::Base
   
   property :key,        String
   property :content,    String
-  property :createdate, String
-  property :modifydate, String
+  property :createdate, String,  :default => Time.new.to_f.to_s
+  property :modifydate, String,  :default => Time.new.to_f.to_s
   property :version,    Integer, :default => 1
   property :syncnumber, Integer, :default => 1
   property :minversion, Integer, :default => 1

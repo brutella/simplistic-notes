@@ -5,9 +5,7 @@ require 'dbwrapper'
 require 'note'
 
 class DBWrapperTest < Test::Unit::TestCase
-  
-  attr_accessor :database
-  
+    
   def setup
     @database = DBWrapper::SimplenoteDatabase.new('simplenote_database_test')
   end
@@ -46,16 +44,18 @@ class DBWrapperTest < Test::Unit::TestCase
     index = @database.get_index
     assert_not_nil index
   end
-  
+
   def test_not_deleted_notes
     notes = @database.get_not_deleted_notes
     assert notes.length != 0
     
     notes.each do |note|
-      assert note.deleted != true
+      # TODO Change delete key of note model to boolean
+      assert note.deleted != true && note.deleted != 1
     end
   end
-  
+
+  # TODO Make updating note easier
   def test_update_note
     notes = @database.get_not_deleted_notes
     assert_not_nil notes
@@ -65,13 +65,19 @@ class DBWrapperTest < Test::Unit::TestCase
     
     note.content = "A new content"
     note.modifydate = Time.new.to_f.to_s
+    version = note.version
+    syncnumber = note.syncnumber
     
     tags = ["important", "todo"]
     note.tags = tags
+    note.version += 1
+    note.syncnumber += 1
+    
     note.save
     
     updated_note = @database.get_note_with_key note.key
 
+    # Check if changes were forwared to the database correctly
     assert_equal updated_note.content,     note.content
     assert_equal updated_note.modifydate,  note.modifydate
     assert_equal updated_note.tags,        note.tags
@@ -81,12 +87,12 @@ class DBWrapperTest < Test::Unit::TestCase
     notes = @database.get_not_deleted_notes
     
     key = notes.first.key
-    result = @database.delete_note_with_key key
-    assert result
+    @database.delete_note_with_key key
+    assert @database.delete_note_with_key key
     
     note = @database.get_note_with_key key
     assert_not_nil note
-    assert note.deleted == true
+    assert note.deleted == 1
   end
 
   def test_delete_note_with_wrong_key
