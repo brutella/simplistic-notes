@@ -3,7 +3,7 @@ require 'bundler/setup'
 require 'couchrest_model'
 
 class Note < CouchRest::Model::Base
-  use_database CouchRest.database!('http://localhost:5984/simplenote_database_test')
+  use_database CouchRest.database!('simplenote_database_test')
   
   property :key,        String
   property :content,    String

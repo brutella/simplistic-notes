@@ -6,10 +6,10 @@ require 'note'
 require 'ruby-debug'
 
 module DBWrapper
-  class SimplenoteDB
+  class SimplenoteDatabase
     
     def initialize(path)
-      raise ArgumentError, "path to database must not be nil" if !path
+      raise ArgumentError, "path to database must not be nil" if path.length == 0
 
       @database = CouchRest.new.database!(path)
     end
