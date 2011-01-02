@@ -11,7 +11,7 @@ class DBWrapperTest < Test::Unit::TestCase
   def setup
     @database = DBWrapper::SimplenoteDatabase.new('simplenote_database_test')
   end
-
+  
   def test_initialize_nil_database
     begin
       @database = DBWrapper::SimplenoteDatabase.new
@@ -21,6 +21,21 @@ class DBWrapperTest < Test::Unit::TestCase
     end
   end
 
+  def test_a_note_creation
+    note = Note.new(
+      :content => 'A new note',
+      :modifydate => Time.now.to_f.to_s,
+      :createdate => Time.now.to_f.to_s
+      )
+    
+    key = @database.create_note(note)
+    assert_not_nil key
+  
+    another_key = @database.create_note(note)
+    assert_not_nil another_key
+    
+    assert_not_equal another_key, key
+  end
 
   def test_get_notes
     notes = @database.get_notes
@@ -64,23 +79,7 @@ class DBWrapperTest < Test::Unit::TestCase
     assert_equal updated_note.modifydate,  note.modifydate
     assert_equal updated_note.tags,        note.tags
   end
-  
-  def test_create_note
-    note = Note.new(
-      :content => 'A new note',
-      :modifydate => Time.now.to_f.to_s,
-      :createdate => Time.now.to_f.to_s
-      )
-    
-    key = @database.create_note(note)
-    assert_not_nil key
-  
-    another_key = @database.create_note(note)
-    assert_not_nil another_key
-    
-    assert_not_equal another_key, key
-  end
-=begin
+
   def test_delete_note
     notes = @database.get_not_deleted_notes
     
@@ -92,7 +91,6 @@ class DBWrapperTest < Test::Unit::TestCase
     assert_not_nil note
     assert note.deleted == true
   end
-=end
 
   def test_delete_note_with_wrong_key
     assert @database.delete_note_with_key('a wrong key') == false
